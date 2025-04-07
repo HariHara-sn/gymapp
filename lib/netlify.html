@@ -1,0 +1,135 @@
+<!-- <!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+  <title>Reset Password</title>
+  <style>
+    body {
+      font-family: 'Poppins', sans-serif;
+      background: linear-gradient(to right, #16a085, #f4d03f);
+      display: flex;
+      justify-content: center;
+      align-items: center;
+      height: 100vh;
+      margin: 0;
+    }
+
+    .reset-container {
+      background-color: white;
+      padding: 30px 25px;
+      border-radius: 20px;
+      box-shadow: 0 8px 20px rgba(0,0,0,0.2);
+      width: 100%;
+      max-width: 400px;
+    }
+
+    .reset-container h2 {
+      text-align: center;
+      margin-bottom: 20px;
+      color: #16a085;
+    }
+
+    .reset-container input {
+      width: 100%;
+      padding: 12px;
+      margin: 10px 0;
+      border: 1px solid #ccc;
+      border-radius: 10px;
+      font-size: 16px;
+    }
+
+    .reset-container button {
+      width: 100%;
+      padding: 12px;
+      background-color: #16a085;
+      color: white;
+      border: none;
+      border-radius: 10px;
+      font-size: 16px;
+      cursor: pointer;
+      transition: 0.3s ease;
+    }
+
+    .reset-container button:hover {
+      background-color: #138d75;
+    }
+
+    .error-message {
+      color: red;
+      font-size: 14px;
+      margin-top: 5px;
+    }
+
+    .success-message {
+      color: green;
+      font-size: 14px;
+      margin-top: 5px;
+    }
+  </style>
+</head>
+<body>
+
+  <div class="reset-container">
+    <h2>Reset Password</h2>
+    <input type="password" id="newPassword" placeholder="New Password" />
+    <input type="password" id="confirmPassword" placeholder="Confirm Password" />
+    <div id="message" class="error-message"></div>
+    <button onclick="submitNewPassword()">Submit</button>
+  </div>
+
+  <script>
+    const submitNewPassword = async () => {
+      const newPassword = document.getElementById("newPassword").value;
+      const confirmPassword = document.getElementById("confirmPassword").value;
+      const messageEl = document.getElementById("message");
+
+      if (!newPassword || !confirmPassword) {
+        messageEl.textContent = "Please fill in all fields.";
+        return;
+      }
+
+      if (newPassword !== confirmPassword) {
+        messageEl.textContent = "Passwords do not match.";
+        return;
+      }
+
+      // Get access_token from URL query params
+      const hashParams = new URLSearchParams(window.location.hash.substr(1));
+const accessToken = hashParams.get("access_token");
+      console.log("Access Token:", accessToken);
+
+
+      if (!accessToken) {
+        messageEl.textContent = "Invalid reset link.";
+        return;
+      }
+
+      try {
+        const res = await fetch("https://thlpzosxqdteqhfvjixu.supabase.co/auth/v1/user", {
+          method: "PUT",
+          headers: {
+            "Content-Type": "application/json",
+            
+            Authorization: `Bearer ${accessToken}`
+          },
+          body: JSON.stringify({ password: newPassword })
+        });
+
+        if (res.ok) {
+          messageEl.className = "success-message";
+          messageEl.textContent = "Password updated successfully!";
+        } else {
+          const errorData = await res.json();
+          messageEl.textContent = errorData.error_description || "Something went wrong!";
+        }
+      } catch (err) {
+        messageEl.textContent = "Error updating password.";
+      }
+    };
+  </script>
+</body>
+</html>
+ -->
+
+ 
