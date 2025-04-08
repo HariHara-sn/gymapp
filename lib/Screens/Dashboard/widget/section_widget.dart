@@ -54,9 +54,22 @@ class SectionWidget extends StatelessWidget {
                   controller:
                       items[index]['exercise_title'] ??
                       items[index]['notice_title'],
+                  style: GoogleFonts.poppins(
+                    fontSize: 18,
+                    fontWeight: FontWeight.bold,
+                    color: AppColors.white,
+                  ),
+
                   decoration: InputDecoration(
                     labelText: "Title",
+
                     hintText: "Enter title",
+                    hintStyle: GoogleFonts.poppins(
+                      fontSize: 18,
+                      fontWeight: FontWeight.bold,
+                      color: AppColors.white,
+                    ),
+
                     border: OutlineInputBorder(
                       borderRadius: BorderRadius.circular(8),
                     ),
@@ -76,9 +89,20 @@ class SectionWidget extends StatelessWidget {
                       items[index]['exercise_desc'] ??
                       items[index]['notice_desc'],
                   maxLines: 3,
+                  style: GoogleFonts.poppins(
+                    fontSize: 18,
+                    // fontWeight: FontWeight.bold,
+                    color: AppColors.white,
+                  ),
+
                   decoration: InputDecoration(
                     labelText: "Description",
                     hintText: "Enter description",
+                    hintStyle: GoogleFonts.poppins(
+                      fontSize: 18,
+
+                      color: AppColors.white,
+                    ),
                     border: OutlineInputBorder(
                       borderRadius: BorderRadius.circular(8),
                     ),

@@ -343,39 +343,98 @@ class _DashboardScreenState extends State<DashboardScreen> {
     showModalBottomSheet(
       context: context,
       isScrollControlled: true,
+      backgroundColor: AppColors.backgroundColor,
+      shape: const RoundedRectangleBorder(
+        borderRadius: BorderRadius.vertical(top: Radius.circular(20)),
+      ),
       builder: (context) {
-        return Padding(
-          padding: EdgeInsets.only(
-            bottom: MediaQuery.of(context).viewInsets.bottom,
-          ),
-          child: Column(
-            mainAxisSize: MainAxisSize.min,
-            children: [
-              TextField(
-                controller: upiController,
-                decoration: const InputDecoration(labelText: 'UPI ID'),
-              ),
-              TextField(
-                controller: amountController,
-                decoration: const InputDecoration(labelText: 'Amount'),
-                keyboardType: TextInputType.number,
-              ),
-              ElevatedButton(
-                onPressed: () {
-                  context.read<DashboardCubit>().updatePayment(
-                    PaymentModel(
-                      id: payment.id,
-                      upiId: upiController.text,
-                      amount: amountController.text,
-                      createdAt: payment.createdAt,
+        return StatefulBuilder(
+          builder: (context, setModalState) {
+            double keyboardHeight = MediaQuery.of(context).viewInsets.bottom;
+            return FractionallySizedBox(
+              heightFactor: keyboardHeight > 0 ? 0.8 : 0.5,
+              child: Padding(
+                padding: const EdgeInsets.all(20.0),
+                child: Column(
+                  mainAxisSize: MainAxisSize.min,
+                  children: [
+                    Container(
+                      width: MediaQuery.of(context).size.width * 0.1667,
+                      height: 2,
+                      color: AppColors.white,
+                      margin: const EdgeInsets.symmetric(vertical: 20),
                     ),
-                  );
-                  Navigator.pop(context);
-                },
-                child: const Text('Update'),
+                    Text(
+                      'Update UPI Details',
+                      style: GoogleFonts.poppins(
+                        fontSize: 18,
+                        fontWeight: FontWeight.bold,
+                      ),
+                    ),
+                    const SizedBox(height: 20),
+
+                    // UPI ID Input
+                    TextField(
+                      controller: upiController,
+                      decoration: InputDecoration(
+                        labelText: "Enter UPI ID",
+                        border: OutlineInputBorder(
+                          borderRadius: BorderRadius.circular(8),
+                        ),
+                      ),
+                    ),
+                    const SizedBox(height: 20),
+
+                    // Amount Input
+                    TextField(
+                      controller: amountController,
+                      keyboardType: TextInputType.number,
+                      decoration: InputDecoration(
+                        labelText: "Enter Amount",
+                        border: OutlineInputBorder(
+                          borderRadius: BorderRadius.circular(8),
+                        ),
+                      ),
+                    ),
+                    const SizedBox(height: 20),
+
+                    // Update Button
+                    ElevatedButton(
+                      onPressed: () {
+                        context.read<DashboardCubit>().updatePayment(
+                          PaymentModel(
+                            id: payment.id,
+                            upiId: upiController.text,
+                            amount: amountController.text,
+                            createdAt: payment.createdAt,
+                          ),
+                        );
+                        Navigator.pop(context);
+                      },
+                      style: ElevatedButton.styleFrom(
+                        backgroundColor: AppColors.greenAccent,
+                        padding: const EdgeInsets.symmetric(
+                          horizontal: 40,
+                          vertical: 15,
+                        ),
+                        shape: RoundedRectangleBorder(
+                          borderRadius: BorderRadius.circular(15),
+                        ),
+                      ),
+                      child: Text(
+                        "Update QR Code",
+                        style: GoogleFonts.poppins(
+                          fontSize: 18,
+                          color: Colors.white,
+                          fontWeight: FontWeight.bold,
+                        ),
+                      ),
+                    ),
+                  ],
+                ),
               ),
-            ],
-          ),
+            );
+          },
         );
       },
     );

@@ -21,18 +21,18 @@ final logger = Logger();
 Future<void> main() async {
   WidgetsFlutterBinding.ensureInitialized();
 
-  // Initialize SharedPreferences
+
   final prefs = await SharedPreferences.getInstance();
   final String? token = prefs.getString('token');
   logger.i("Initial Token: $token");
 
-  // Initialize Supabase
+  
   await Supabase.initialize(
     url: Secrets.supabaseUrl,
     anonKey: Secrets.annonkey,
   );
 
-  // Set device orientation
+
   await SystemChrome.setPreferredOrientations([
     DeviceOrientation.portraitUp,
     DeviceOrientation.portraitDown,
@@ -42,7 +42,7 @@ Future<void> main() async {
     MultiBlocProvider(
       providers: [
         BlocProvider<AuthCubit>(
-          create: (context) => AuthCubit(), // Add initialization
+          create: (context) => AuthCubit(), 
         ),
         BlocProvider<AuthBloc>(create: (context) => AuthBloc(AuthRepository())),
         BlocProvider<WorkoutCubit>(
