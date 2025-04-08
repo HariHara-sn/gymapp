@@ -1,19 +1,17 @@
 import 'package:flutter/material.dart';
 import 'package:google_fonts/google_fonts.dart';
-import 'package:gymapp/Theme/appcolor.dart';
+import 'package:gymapp/Screens/Home/AddMember/widgets/form_navigation_buttons.dart';
+import 'package:gymapp/Screens/Home/AddMember/widgets/page1_info.dart';
 import 'package:gymapp/Utils/custom_snack_bar.dart';
 import 'package:gymapp/main.dart';
-import 'package:gymapp/Screens/widgets/build_radio_button.dart';
-import 'package:gymapp/Screens/widgets/build_text.dart';
-import 'package:gymapp/Screens/widgets/build_underline_text.dart';
-import 'package:permission_handler/permission_handler.dart';
 import 'dart:io';
 import 'package:supabase_flutter/supabase_flutter.dart';
-import 'package:file_picker/file_picker.dart';
-import 'package:path/path.dart';
-import 'package:path/path.dart' as path;
-
-import '../../widgets/build_measurementfield.dart';
+import 'package:gymapp/utils/member_form_utils.dart';
+import 'model/member_model.dart';
+import 'widgets/emergency_contact_page.dart';
+import 'widgets/employment_payment_page.dart';
+import 'widgets/measurements_address_page.dart';
+import 'widgets/page_indicator.dart';
 
 class AddMemberScreen extends StatefulWidget {
   final String? gymId;
@@ -29,7 +27,6 @@ class _AddMemberScreenState extends State<AddMemberScreen> {
   String genderType = "Male";
   String trainingType = "Trainer";
   final SupabaseClient supabase = Supabase.instance.client;
-
   bool isSubmitting = false;
   File? _imageFile;
 
@@ -71,79 +68,33 @@ class _AddMemberScreenState extends State<AddMemberScreen> {
   @override
   void dispose() {
     _pageController.dispose();
+    dobController.dispose();
+    addressController.dispose();
+    batchTimeController.dispose();
+    memberNameController.dispose();
+    mobileController.dispose();
+    emailController.dispose();
+    employerController.dispose();
+    occupationController.dispose();
+    memberPlanController.dispose();
+    paymentMethodController.dispose();
+    fromJoiningDateController.dispose();
+    toJoiningDateController.dispose();
+    paidAmountController.dispose();
+    paidDateController.dispose();
+    dueAmountController.dispose();
+    heightController.dispose();
+    weightController.dispose();
+    chestController.dispose();
+    waistController.dispose();
+    emergencyNameController.dispose();
+    emergencyAddressController.dispose();
+    emergencyRelationshipController.dispose();
+    emergencyPhoneController.dispose();
     super.dispose();
   }
 
-  Future<void> pickFile(BuildContext context) async {
-    if (!context.mounted) return;
-    try {
-      await Permission.photos.request();
-      var status = await Permission.photos.status;
-      if (status.isGranted) {
-        FilePickerResult? result = await FilePicker.platform.pickFiles(
-          type: FileType.image,
-        );
-
-        if (result == null || result.files.isEmpty) {
-          ScaffoldMessenger.of(
-            context,
-          ).showSnackBar(const SnackBar(content: Text('No file selected!')));
-          return;
-        }
-
-        setState(() {
-          _imageFile = File(result.files.single.path!);
-        });
-      } else {
-        ScaffoldMessenger.of(context).showSnackBar(
-          SnackBar(
-            content: ExcludeSemantics(
-              child: Text(
-                'Permission to access gallery is required.',
-                style: TextStyle(color: AppColors.white),
-              ),
-            ),
-            behavior: SnackBarBehavior.floating,
-            action: SnackBarAction(
-              label: 'Open Settings',
-              onPressed: () => openAppSettings(),
-            ),
-            backgroundColor: AppColors.red,
-            duration: const Duration(seconds: 4),
-            shape: RoundedRectangleBorder(
-              borderRadius: BorderRadius.circular(10),
-            ),
-            margin: const EdgeInsets.all(10),
-          ),
-        );
-      }
-    } catch (e) {
-      CustomSnackBar.showSnackBar(
-        'An error occurred while picking the file.',
-
-        SnackBarType.failure,
-      );
-    }
-  }
-
-  Future<String?> uploadImage(File imageFile, context) async {
-    try {
-      final fileName =
-          'membersphoto_${DateTime.now().millisecondsSinceEpoch}${path.extension(imageFile.path)}';
-      final filePath = 'membersphotos/$fileName';
-
-      await supabase.storage.from('membersphotos').upload(filePath, imageFile);
-      return supabase.storage.from('membersphotos').getPublicUrl(filePath);
-    } catch (e) {
-      ScaffoldMessenger.of(
-        context,
-      ).showSnackBar(const SnackBar(content: Text('Image upload failed')));
-
-      return null;
-    }
-  }
-
-  Future<void> saveMemberInfo() async {
+  Future<void> saveMemberInfo(context) async {
     if (isSubmitting) return;
     setState(() => isSubmitting = true);
 
@@ -157,44 +108,50 @@ class _AddMemberScreenState extends State<AddMemberScreen> {
     }
 
     String? imageUrl;
-
     if (_imageFile != null) {
-      imageUrl = await uploadImage(_imageFile!, context);
+      imageUrl = await MemberFormUtils.uploadImage(_imageFile!, context);
+      if (imageUrl == null) {
+        setState(() => isSubmitting = false);
+        CustomSnackBar.showSnackBar(
+          "Image upload failed",
+          SnackBarType.failure,
+        );
+        return;
+      }
     }
 
-    
     try {
-      await supabase.from('memberinfo').insert({
-  'gymId': widget.gymId ?? '',
-  'name': memberNameController.text.trim().isNotEmpty ? memberNameController.text.trim() : '',
-  'mobile': mobileController.text.trim().isNotEmpty ? mobileController.text.trim() : '',
-  'gender': genderType ,
-  'height': heightController.text.trim().isNotEmpty ? heightController.text.trim() : '',
-  'weight': weightController.text.trim().isNotEmpty ? weightController.text.trim() : '',
-  'chest': chestController.text.trim().isNotEmpty ? chestController.text.trim() : '',
-  'waist': waistController.text.trim().isNotEmpty ? waistController.text.trim() : '',
-  'dob': dobController.text.trim().isNotEmpty ? dobController.text.trim() : '',
-  'address': addressController.text.trim().isNotEmpty ? addressController.text.trim() : '',
-  'training': trainingType ,
-  'batch_time': batchTimeController.text.trim().isNotEmpty ? batchTimeController.text.trim() : '',
-  'email': emailController.text.trim().isNotEmpty ? emailController.text.trim() : '',
-  'employer': employerController.text.trim().isNotEmpty ? employerController.text.trim() : '',
-  'occupation': occupationController.text.trim().isNotEmpty ? occupationController.text.trim() : '',
-  'emergency_name': emergencyNameController.text.trim().isNotEmpty ? emergencyNameController.text.trim() : '',
-  'emergency_address': emergencyAddressController.text.trim().isNotEmpty ? emergencyAddressController.text.trim() : '',
-  'emergency_relationship': emergencyRelationshipController.text.trim().isNotEmpty ? emergencyRelationshipController.text.trim() : '',
-  'emergency_phone': emergencyPhoneController.text.trim().isNotEmpty ? emergencyPhoneController.text.trim() : '',
-  'member_img': imageUrl ?? '',
-  'member_plan': memberPlanController.text.trim().isNotEmpty ? memberPlanController.text.trim() : '',
-  'payment_method': paymentMethodController.text.trim().isNotEmpty ? paymentMethodController.text.trim() : '',
-  'from_joining_date': fromJoiningDateController.text.trim().isNotEmpty ? fromJoiningDateController.text.trim() : '',
-  'to_joining_date': toJoiningDateController.text.trim().isNotEmpty ? toJoiningDateController.text.trim() : '',
-  'paid_amount': paidAmountController.text.trim().isNotEmpty ? paidAmountController.text.trim() : '',
-  'paid_date': paidDateController.text.trim().isNotEmpty ? paidDateController.text.trim() : '',
-  'due_amount': dueAmountController.text.trim().isNotEmpty ? dueAmountController.text.trim() : '',
-  'payment_status':'Pending',
-});
+      final member = Member(
+        gymId: widget.gymId,
+        name: memberNameController.text.trim(),
+        mobile: mobileController.text.trim(),
+        gender: genderType,
+        height: heightController.text.trim(),
+        weight: weightController.text.trim(),
+        chest: chestController.text.trim(),
+        waist: waistController.text.trim(),
+        dob: dobController.text.trim(),
+        address: addressController.text.trim(),
+        training: trainingType,
+        batchTime: batchTimeController.text.trim(),
+        email: emailController.text.trim(),
+        employer: employerController.text.trim(),
+        occupation: occupationController.text.trim(),
+        emergencyName: emergencyNameController.text.trim(),
+        emergencyAddress: emergencyAddressController.text.trim(),
+        emergencyRelationship: emergencyRelationshipController.text.trim(),
+        emergencyPhone: emergencyPhoneController.text.trim(),
+        memberImg: imageUrl,
+        memberPlan: memberPlanController.text.trim(),
+        paymentMethod: paymentMethodController.text.trim(),
+        fromJoiningDate: fromJoiningDateController.text.trim(),
+        toJoiningDate: toJoiningDateController.text.trim(),
+        paidAmount: paidAmountController.text.trim(),
+        paidDate: paidDateController.text.trim(),
+        dueAmount: dueAmountController.text.trim(),
+      );
 
+      await supabase.from('memberinfo').insert(member.toMap());
 
       CustomSnackBar.showSnackBar(
         'Member added successfully!',
@@ -213,13 +170,12 @@ class _AddMemberScreenState extends State<AddMemberScreen> {
     }
   }
 
-  bool _validateInputs(context) {
+  bool _validateInputs(BuildContext context) {
     if (memberNameController.text.isEmpty) {
       CustomSnackBar.showSnackBar(
         "Please enter the member's name",
         SnackBarType.failure,
       );
-
       return false;
     }
     if (mobileController.text.isEmpty || mobileController.text.length != 10) {
@@ -272,25 +228,20 @@ class _AddMemberScreenState extends State<AddMemberScreen> {
   }
 
   void _nextPage() {
-    // Validate current page before proceeding
-    if (!_validateCurrentPage()) {
-      return;
-    }
+    if (!_validateCurrentPage()) return;
 
     if (_currentPage < 3) {
       _pageController.nextPage(
         duration: const Duration(milliseconds: 300),
         curve: Curves.ease,
       );
-      setState(() {
-        _currentPage++;
-      });
+      setState(() => _currentPage++);
     }
   }
 
   bool _validateCurrentPage() {
     switch (_currentPage) {
-      case 0: // Basic Info Page
+      case 0:
         if (memberNameController.text.isEmpty) {
           CustomSnackBar.showSnackBar(
             "Please enter the member's name",
@@ -307,8 +258,7 @@ class _AddMemberScreenState extends State<AddMemberScreen> {
           return false;
         }
         return true;
-
-      case 1: // Measurements and Address Page
+      case 1:
         if (addressController.text.isEmpty) {
           CustomSnackBar.showSnackBar(
             "Please enter address",
@@ -317,8 +267,7 @@ class _AddMemberScreenState extends State<AddMemberScreen> {
           return false;
         }
         return true;
-
-      case 2: // Employment and Payment Info Page
+      case 2:
         if (emailController.text.isEmpty ||
             !emailRegex.hasMatch(emailController.text)) {
           CustomSnackBar.showSnackBar(
@@ -336,8 +285,7 @@ class _AddMemberScreenState extends State<AddMemberScreen> {
           return false;
         }
         return true;
-
-      case 3: // Emergency Contact Page
+      case 3:
         if (emergencyNameController.text.isEmpty ||
             emergencyPhoneController.text.isEmpty) {
           CustomSnackBar.showSnackBar(
@@ -347,7 +295,6 @@ class _AddMemberScreenState extends State<AddMemberScreen> {
           return false;
         }
         return true;
-
       default:
         return true;
     }
@@ -359,15 +306,12 @@ class _AddMemberScreenState extends State<AddMemberScreen> {
         duration: const Duration(milliseconds: 300),
         curve: Curves.ease,
       );
-      setState(() {
-        _currentPage--;
-      });
+      setState(() => _currentPage--);
     }
   }
 
   @override
   Widget build(BuildContext context) {
-    final height = MediaQuery.of(context).size.height;
 
     return Scaffold(
       appBar: AppBar(
@@ -389,26 +333,7 @@ class _AddMemberScreenState extends State<AddMemberScreen> {
       body: Column(
         children: [
           // Page indicator
-          Padding(
-            padding: const EdgeInsets.symmetric(vertical: 10),
-            child: Row(
-              mainAxisAlignment: MainAxisAlignment.center,
-              children: List.generate(4, (index) {
-                return Container(
-                  width: 10,
-                  height: 10,
-                  margin: const EdgeInsets.symmetric(horizontal: 5),
-                  decoration: BoxDecoration(
-                    shape: BoxShape.circle,
-                    color:
-                        _currentPage == index
-                            ? Colors.greenAccent
-                            : Colors.grey,
-                  ),
-                );
-              }),
-            ),
-          ),
+          PageIndicator(currentPage: _currentPage),
 
           // Form pages
           Expanded(
@@ -417,435 +342,63 @@ class _AddMemberScreenState extends State<AddMemberScreen> {
               physics: const NeverScrollableScrollPhysics(),
               children: [
                 // Page 1: Basic Info
-                SingleChildScrollView(
-                  padding: const EdgeInsets.symmetric(
-                    horizontal: 20,
-                    vertical: 10,
-                  ),
-                  child: Column(
-                    crossAxisAlignment: CrossAxisAlignment.start,
-                    children: [
-                      Center(
-                        child: GestureDetector(
-                          onTap: () => pickFile(context),
-                          child:
-                              _imageFile == null
-                                  ? Image.asset(
-                                    "assets/member.avif",
-                                    width: 60,
-                                    height: 60,
-                                  )
-                                  : Image.file(
-                                    _imageFile!,
-                                    height: 60,
-                                    width: 60,
-                                    fit: BoxFit.cover,
-                                  ),
-                        ),
-                      ),
-                      const SizedBox(height: 10),
-
-                      BuildText("Name -:"),
-                      BuildUnderlineText(controller: memberNameController),
-
-                      Row(
-                        mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                        children: [
-                          BuildText("Upload Photo -:"),
-                          Padding(
-                            padding: const EdgeInsets.only(top: 5.0),
-                            child: ElevatedButton.icon(
-                              style: ElevatedButton.styleFrom(
-                                backgroundColor: Colors.black,
-                                foregroundColor: Colors.greenAccent,
-                                shape: RoundedRectangleBorder(
-                                  borderRadius: BorderRadius.circular(30),
-                                  side: const BorderSide(
-                                    color: Colors.greenAccent,
-                                  ),
-                                ),
-                                padding: const EdgeInsets.symmetric(
-                                  vertical: 12,
-                                  horizontal: 20,
-                                ),
-                              ),
-                              icon: const Icon(
-                                Icons.upload,
-                                color: Colors.greenAccent,
-                              ),
-                              label: Text(
-                                'Upload',
-                                style: GoogleFonts.poppins(
-                                  fontSize: 16,
-                                  color: Colors.greenAccent,
-                                ),
-                              ),
-                              onPressed: () => pickFile(context),
-                            ),
-                          ),
-                        ],
-                      ),
-
-                      BuildText("Mobile No. -:"),
-                      BuildUnderlineText(
-                        controller: mobileController,
-                        inputType: TextInputType.number,
-                        maxLength: 10,
-                      ),
-
-                      BuildText("Gender -:"),
-                      Row(
-                        children: [
-                          BuildRadioButton(
-                            value: "Male",
-                            icon: Icons.male,
-                            groupValue: genderType,
-                            onChanged: (newValue) {
-                              setState(() {
-                                genderType = newValue;
-                              });
-                            },
-                          ),
-                          BuildRadioButton(
-                            value: "Female",
-                            icon: Icons.female,
-                            groupValue: genderType,
-                            onChanged: (newValue) {
-                              setState(() {
-                                genderType = newValue;
-                              });
-                            },
-                          ),
-                        ],
-                      ),
-
-                      BuildText("Date of Birth -:"),
-                      BuildUnderlineText(
-                        controller: dobController,
-                        onTap: () => _selectDate(context, dobController),
-                      ),
-                    ],
-                  ),
+                Page1Info(
+                  memberNameController: memberNameController,
+                  mobileController: mobileController,
+                  dobController: dobController,
+                  genderType: genderType,
+                  onGenderChanged:
+                      (newValue) => setState(() => genderType = newValue),
+                  imageFile: _imageFile,
+                  onImageSelected: (file) => setState(() => _imageFile = file),
                 ),
-
                 // Page 2: Measurements and Address
-                SingleChildScrollView(
-                  padding: const EdgeInsets.symmetric(
-                    horizontal: 20,
-                    vertical: 10,
-                  ),
-                  child: Column(
-                    crossAxisAlignment: CrossAxisAlignment.start,
-                    children: [
-                      BuildText("Measurements -:"),
-                      Row(
-                        children: [
-                          MeasurementField(
-                            controller: heightController,
-                            label: "Height",
-                          ),
-                          MeasurementField(
-                            controller: weightController,
-                            label: "Weight",
-                          ),
-                        ],
-                      ),
-                      Row(
-                        children: [
-                          MeasurementField(
-                            controller: chestController,
-                            label: "Chest",
-                          ),
-                          MeasurementField(
-                            controller: waistController,
-                            label: "Waist",
-                          ),
-                        ],
-                      ),
-
-                      BuildText("Address -:"),
-                      BuildUnderlineText(controller: addressController),
-
-                      BuildText("Training -:"),
-                      Row(
-                        children: [
-                          BuildRadioButton(
-                            value: "Trainer",
-                            icon: Icons.directions_run,
-                            groupValue: trainingType,
-                            onChanged: (newValue) {
-                              setState(() {
-                                trainingType = newValue;
-                              });
-                            },
-                          ),
-                          BuildRadioButton(
-                            value: "Personal",
-                            icon: Icons.person_rounded,
-                            groupValue: trainingType,
-                            onChanged: (newValue) {
-                              setState(() {
-                                trainingType = newValue;
-                              });
-                            },
-                          ),
-                        ],
-                      ),
-
-                      BuildText("Batch Time -:"),
-                      BuildUnderlineText(
-                        controller: batchTimeController,
-                        onTap: () => _selectTime(context),
-                      ),
-                    ],
-                  ),
+                MeasurementsAddressPage(
+                  heightController: heightController,
+                  weightController: weightController,
+                  chestController: chestController,
+                  waistController: waistController,
+                  addressController: addressController,
+                  batchTimeController: batchTimeController,
+                  trainingType: trainingType,
+                  onTrainingChanged:
+                      (newValue) => setState(() => trainingType = newValue),
                 ),
-
                 // Page 3: Employment and Payment Info
-                SingleChildScrollView(
-                  padding: const EdgeInsets.symmetric(
-                    horizontal: 20,
-                    vertical: 10,
-                  ),
-                  child: Column(
-                    crossAxisAlignment: CrossAxisAlignment.start,
-                    children: [
-                      BuildText("Email -:"),
-                      BuildUnderlineText(controller: emailController),
-
-                      BuildText("Employer -:"),
-                      BuildUnderlineText(controller: employerController),
-
-                      BuildText("Occupation -:"),
-                      BuildUnderlineText(controller: occupationController),
-
-                      BuildText("Joining Date -:"),
-                      Row(
-                        children: [
-                          Expanded(
-                            child: BuildUnderlineText(
-                              controller: fromJoiningDateController,
-                              onTap:
-                                  () => _selectDate(
-                                    context,
-                                    fromJoiningDateController,
-                                  ),
-                            ),
-                          ),
-                          const SizedBox(width: 10),
-                          Text(
-                            "To",
-                            style: GoogleFonts.poppins(
-                              fontSize: 16,
-                              color: Colors.greenAccent,
-                            ),
-                          ),
-                          const SizedBox(width: 10),
-                          Expanded(
-                            child: BuildUnderlineText(
-                              controller: toJoiningDateController,
-                              onTap:
-                                  () => _selectDate(
-                                    context,
-                                    toJoiningDateController,
-                                  ),
-                            ),
-                          ),
-                        ],
-                      ),
-
-                      BuildText("Plan -:"),
-                      BuildUnderlineText(controller: memberPlanController),
-
-                      BuildText("Payment Method -:"),
-                      BuildUnderlineText(controller: paymentMethodController),
-
-                      BuildText("Paid Amount -:"),
-                      BuildUnderlineText(
-                        controller: paidAmountController,
-                        inputType: TextInputType.number,
-                      ),
-                      BuildText("Paid Date -:"),
-                      BuildUnderlineText(
-                        controller: paidDateController,
-                        onTap: () => _selectDate(context, paidDateController),
-                      ),
-                      BuildText("Due Amount -:"),
-                      BuildUnderlineText(
-                        controller: dueAmountController,
-                        inputType: TextInputType.number,
-                      ),
-                    ],
-                  ),
+                EmploymentPaymentPage(
+                  emailController: emailController,
+                  employerController: employerController,
+                  occupationController: occupationController,
+                  fromJoiningDateController: fromJoiningDateController,
+                  toJoiningDateController: toJoiningDateController,
+                  memberPlanController: memberPlanController,
+                  paymentMethodController: paymentMethodController,
+                  paidAmountController: paidAmountController,
+                  paidDateController: paidDateController,
+                  dueAmountController: dueAmountController,
                 ),
-
                 // Page 4: Emergency Contact
-                SingleChildScrollView(
-                  padding: const EdgeInsets.symmetric(
-                    horizontal: 20,
-                    vertical: 10,
-                  ),
-                  child: Column(
-                    crossAxisAlignment: CrossAxisAlignment.start,
-                    children: [
-                      BuildText(
-                        "In case of emergency, Please Notify :",
-                        bold: true,
-                      ),
-                      BuildText("1. Name -:"),
-                      BuildUnderlineText(controller: emergencyNameController),
-                      BuildText("2. Address -:"),
-                      BuildUnderlineText(
-                        controller: emergencyAddressController,
-                      ),
-                      BuildText("3. Relationship -:"),
-                      BuildUnderlineText(
-                        controller: emergencyRelationshipController,
-                      ),
-                      BuildText("4. Phone No. -:"),
-                      BuildUnderlineText(
-                        controller: emergencyPhoneController,
-                        inputType: TextInputType.number,
-                        maxLength: 10,
-                      ),
-                    ],
-                  ),
+                EmergencyContactPage(
+                  emergencyNameController: emergencyNameController,
+                  emergencyAddressController: emergencyAddressController,
+                  emergencyRelationshipController:
+                      emergencyRelationshipController,
+                  emergencyPhoneController: emergencyPhoneController,
                 ),
               ],
             ),
           ),
 
           // Navigation buttons
-          Padding(
-            padding: const EdgeInsets.all(20.0),
-            child: Row(
-              mainAxisAlignment: MainAxisAlignment.spaceBetween,
-              children: [
-                if (_currentPage > 0)
-                  Padding(
-                    padding: EdgeInsets.only(bottom: height * 0.05),
-
-                    child: ElevatedButton(
-                      style: ElevatedButton.styleFrom(
-                        backgroundColor: Colors.black,
-                        foregroundColor: Colors.greenAccent,
-                        shape: RoundedRectangleBorder(
-                          borderRadius: BorderRadius.circular(30),
-                          side: const BorderSide(color: Colors.greenAccent),
-                        ),
-                        padding: const EdgeInsets.symmetric(
-                          vertical: 14,
-                          horizontal: 30,
-                        ),
-                      ),
-                      onPressed: _previousPage,
-                      child: Text(
-                        'Previous',
-                        style: GoogleFonts.poppins(
-                          fontSize: 16,
-                          fontWeight: FontWeight.bold,
-                          color: Colors.white,
-                        ),
-                      ),
-                    ),
-                  )
-                else
-                  const SizedBox(width: 100),
-
-                if (_currentPage < 3)
-                  Padding(
-                    padding: EdgeInsets.only(bottom: height * 0.05),
-
-                    child: ElevatedButton(
-                      style: ElevatedButton.styleFrom(
-                        backgroundColor: Colors.black,
-                        foregroundColor: Colors.greenAccent,
-                        shape: RoundedRectangleBorder(
-                          borderRadius: BorderRadius.circular(30),
-                          side: const BorderSide(color: Colors.greenAccent),
-                        ),
-                        padding: const EdgeInsets.symmetric(
-                          vertical: 14,
-                          horizontal: 30,
-                        ),
-                      ),
-                      onPressed: _nextPage,
-                      child: Text(
-                        'Next',
-                        style: GoogleFonts.poppins(
-                          fontSize: 16,
-                          fontWeight: FontWeight.bold,
-                          color: Colors.white,
-                        ),
-                      ),
-                    ),
-                  )
-                else
-                  Padding(
-                    padding: EdgeInsets.only(bottom: height * 0.05),
-                    child: ElevatedButton(
-                      style: ElevatedButton.styleFrom(
-                        backgroundColor: Colors.black,
-                        foregroundColor: Colors.greenAccent,
-                        shape: RoundedRectangleBorder(
-                          borderRadius: BorderRadius.circular(30),
-                          side: const BorderSide(color: Colors.greenAccent),
-                        ),
-                        padding: const EdgeInsets.symmetric(
-                          vertical: 14,
-                          horizontal: 40,
-                        ),
-                      ),
-                      onPressed: () => isSubmitting ? null : saveMemberInfo(),
-                      child:
-                          isSubmitting
-                              ? const CircularProgressIndicator(
-                                color: Colors.greenAccent,
-                              )
-                              : Text(
-                                'Save',
-                                style: GoogleFonts.poppins(
-                                  fontSize: 18,
-                                  fontWeight: FontWeight.bold,
-                                  color: Colors.white,
-                                ),
-                              ),
-                    ),
-                  ),
-              ],
-            ),
+          FormNavigationButtons(
+            currentPage: _currentPage,
+            onPreviousPressed: _previousPage,
+            onNextPressed: _nextPage,
+            onSavePressed: () => saveMemberInfo(context),
+            isSubmitting: isSubmitting,
           ),
         ],
       ),
     );
-  }
-
-  Future<void> _selectDate(
-    BuildContext context,
-    TextEditingController controller,
-  ) async {
-    DateTime? picked = await showDatePicker(
-      context: context,
-      initialDate: DateTime.now(),
-      firstDate: DateTime(1950),
-      lastDate: DateTime.now(),
-    );
-    if (picked != null) {
-      setState(() {
-        controller.text = "${picked.day}-${picked.month}-${picked.year}";
-      });
-    }
-  }
-
-  Future<void> _selectTime(BuildContext context) async {
-    TimeOfDay? picked = await showTimePicker(
-      context: context,
-      initialTime: TimeOfDay.now(),
-    );
-    if (picked != null) {
-      setState(() {
-        batchTimeController.text = picked.format(context);
-      });
-    }
   }
 }

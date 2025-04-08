@@ -1,7 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:google_fonts/google_fonts.dart';
 import '../../../Theme/appcolor.dart';
-import 'editable_item_widget.dart';
 
 class SectionWidget extends StatelessWidget {
   final String title;

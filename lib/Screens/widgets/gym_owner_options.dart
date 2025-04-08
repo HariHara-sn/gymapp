@@ -3,6 +3,7 @@ import 'package:google_fonts/google_fonts.dart';
 import 'package:gymapp/Theme/appcolor.dart';
 import 'package:gymapp/login_page_2.dart';
 import 'divider_widget.dart';
+import 'package:auto_size_text/auto_size_text.dart';
 
 class GymOwnerOptions extends StatelessWidget {
   final double width;
@@ -33,9 +34,10 @@ class GymOwnerOptions extends StatelessWidget {
             ),
           ),
           icon: const Icon(Icons.mail, color: Colors.white),
-          label: Text(
+          label: AutoSizeText(
             'Continue with Mail',
             style: GoogleFonts.poppins(fontSize: 16, color: Colors.white),
+            maxLines: 1,
           ),
           onPressed: () {
             Navigator.push(
@@ -61,13 +63,11 @@ class GymOwnerOptions extends StatelessWidget {
               horizontal: width * 0.1 + 50,
             ),
           ),
-          icon: Image.asset(
-            'assets/icons/google_logo.png', 
-            height: 24,
-          ),
-          label: Text(
+          icon: Image.asset('assets/icons/google_logo.png', height: 24),
+          label: AutoSizeText(
             'Sign in with Google',
             style: GoogleFonts.poppins(fontSize: 16, color: Colors.white),
+            maxLines: 1,
           ),
           onPressed: () {
             // Handle Google Sign-in
