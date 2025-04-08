@@ -16,7 +16,7 @@ class AuthCubit extends Cubit<String?> {
   Future<void> saveToken(String token) async {
     final prefs = await SharedPreferences.getInstance();
     await prefs.setString(_authTokenKey, token);
-    emit(token);  //state = token;
+    emit(token); //state = token;
   }
 
   Future<void> clearToken() async {

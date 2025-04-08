@@ -13,7 +13,7 @@ import 'package:file_picker/file_picker.dart';
 import 'package:path/path.dart';
 import 'package:path/path.dart' as path;
 
-import 'Screens/widgets/build_measurementfield.dart';
+import '../../widgets/build_measurementfield.dart';
 
 class AddMemberScreen extends StatefulWidget {
   final String? gymId;

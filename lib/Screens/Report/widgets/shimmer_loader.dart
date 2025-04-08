@@ -5,6 +5,7 @@ import '../../../Theme/appcolor.dart';
 
 
 class ShimmerLoader extends StatelessWidget {
+  const ShimmerLoader({super.key});
   @override
   Widget build(BuildContext context) {
     return Shimmer.fromColors(

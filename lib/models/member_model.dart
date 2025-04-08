@@ -4,7 +4,6 @@ class Member {
   String name;
   String mobile;
   String gender;
-  String memberNo;
   String height;
   String weight;
   String chest;
@@ -36,7 +35,6 @@ class Member {
     this.name = '',
     this.mobile = '',
     this.gender = 'Male',
-    this.memberNo = '',
     this.height = '',
     this.weight = '',
     this.chest = '',
@@ -71,7 +69,6 @@ class Member {
       name: map['name'] ?? '',
       mobile: map['mobile'] ?? '',
       gender: map['gender'] ?? 'Male',
-      memberNo: map['member_no'] ?? '',
       height: map['height'] ?? '',
       weight: map['weight'] ?? '',
       chest: map['chest'] ?? '',
@@ -106,7 +103,6 @@ class Member {
       'name': name,
       'mobile': mobile,
       'gender': gender,
-      'member_no': memberNo,
       'height': height,
       'weight': weight,
       'chest': chest,

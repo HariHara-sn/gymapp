@@ -1,27 +1,57 @@
 import 'package:flutter/material.dart';
-import 'package:shimmer/shimmer.dart';
+import 'package:gymapp/Theme/appcolor.dart' show AppColors;
 
-import '../../../Theme/appcolor.dart';
+class PaymentDataTable extends StatelessWidget {
+  final List<Map<String, dynamic>> members;
 
+  const PaymentDataTable({
+    super.key,
+    required this.members,
+  });
 
-class ShimmerLoader extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
-    return Shimmer.fromColors(
-      baseColor: AppColors.backgroundColor.withOpacity(0.5),
-      highlightColor: Colors.grey[50]!,
-      child: ListView.builder(
-        itemCount: 6,
-        itemBuilder: (context, index) => Container(
-          margin: const EdgeInsets.symmetric(vertical: 8),
-          height: 50,
-          width: double.infinity,
-          decoration: BoxDecoration(
-            color: Colors.white,
-            borderRadius: BorderRadius.circular(8),
+    final double width = MediaQuery.of(context).size.width;
+    double columnSpacing = _calculateColumnSpacing(width);
+
+    return SingleChildScrollView(
+      scrollDirection: Axis.horizontal,
+      child: DataTable(
+        columnSpacing: columnSpacing,
+        dividerThickness: 0.5,
+        columns: [
+          DataColumn(
+            label: Text(
+              'Payment Method',
+              style: TextStyle(color: AppColors.greenAccent),
+            ),
           ),
-        ),
+          DataColumn(
+            label: Text(
+              'Payment Status',
+              style: TextStyle(color: AppColors.greenAccent),
+            ),
+          ),
+        ],
+        rows: members.map((member) {
+          return DataRow(
+            cells: [
+              DataCell(Text(member['payment_method'] ?? 'N/A')),
+              DataCell(Text(member['payment_status'] ?? 'N/A')),
+            ],
+          );
+        }).toList(),
       ),
     );
+  }
+
+  double _calculateColumnSpacing(double screenWidth) {
+    if (screenWidth < 600) {
+      return 60; // Mobile
+    } else if (screenWidth >= 600 && screenWidth < 1024) {
+      return 200; // Tablet
+    } else {
+      return 300; // Desktop
+    }
   }
 }

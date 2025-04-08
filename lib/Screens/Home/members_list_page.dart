@@ -4,7 +4,7 @@ import 'package:gymapp/Screens/Home/widgets/member_card_widget.dart';
 import 'package:gymapp/Theme/appcolor.dart';
 import 'package:gymapp/Utils/custom_snack_bar.dart';
 import 'package:gymapp/Utils/drawer.dart';
-import 'package:gymapp/add_members.dart';
+import 'package:gymapp/Screens/Home/AddMember/add_members.dart';
 import 'package:supabase_flutter/supabase_flutter.dart';
 import '../../main.dart';
 import 'member_details_page.dart';
@@ -36,6 +36,8 @@ class _MembersinfoState extends State<Membersinfo> {
 
   Future<void> checkInternetConnection() async {
     var connectivityResult = await Connectivity().checkConnectivity();
+    if (!mounted) return;
+
     setState(() {
       isConnected = connectivityResult != ConnectivityResult.none;
     });
@@ -45,6 +47,8 @@ class _MembersinfoState extends State<Membersinfo> {
     await checkInternetConnection();
 
     if (!isConnected) {
+      if (!mounted) return;
+
       setState(() {
         errorMessage = "No Internet Connection!";
         isLoading = false;
@@ -57,6 +61,7 @@ class _MembersinfoState extends State<Membersinfo> {
           .from('memberinfo')
           .select()
           .eq('gymId', user!.id);
+      if (!mounted) return;
 
       setState(() {
         members = List<Map<String, dynamic>>.from(response);
@@ -64,6 +69,8 @@ class _MembersinfoState extends State<Membersinfo> {
         isLoading = false;
       });
     } catch (error) {
+      if (!mounted) return;
+
       setState(() {
         errorMessage = "Failed to load members";
         isLoading = false;
@@ -77,7 +84,9 @@ class _MembersinfoState extends State<Membersinfo> {
 
   void _filterMembers() {
     String query = searchController.text.toLowerCase();
-    logger.i(query);
+
+    if (!mounted) return;
+
     setState(() {
       filteredMembers =
           members.where((member) {
@@ -92,6 +101,8 @@ class _MembersinfoState extends State<Membersinfo> {
   Future<void> deleteMember(String memberId) async {
     try {
       await supabase.from('memberinfo').delete().eq('member_id', memberId);
+      if (!mounted) return;
+
       setState(() {
         members.removeWhere(
           (member) => member['member_id'].toString() == memberId,
@@ -225,7 +236,11 @@ class _MembersinfoState extends State<Membersinfo> {
                                                             .isNotEmpty)
                                                     ? member['member_img']
                                                     : "https://picsum.photos/500/500?random=$index",
-                                            onDelete: () => deleteMember(member['member_id'].toString(),),
+                                            onDelete:
+                                                () => deleteMember(
+                                                  member['member_id']
+                                                      .toString(),
+                                                ),
                                           ),
                                         );
                                       },
